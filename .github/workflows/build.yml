@@ -1,0 +1,38 @@
+name: Lint and send to dockerhub
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run_linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.9'
+          architecture: 'x64'
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - name: Run linter
+        run: pylint euro_oracle_bot/
+
+  build_and_pub:
+    needs: [run_linter]
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_LOGIN: ${{ secrets.DOCKER_LOGIN }}
+      DOCKER_NAME: ${{ secrets.DOCKER_NAME }}
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_LOGIN }}
+          password: ${{ secrets.DOCKER_SECRET }}
+      - uses: actions/checkout@master
+      - name: Build image
+        run: docker build -t $DOCKER_LOGIN/$DOCKER_NAME:${GITHUB_REF:11} -f Dockerfile .
+      - name: Push image to docker.io
+        run: docker push $DOCKER_LOGIN/$DOCKER_NAME:${GITHUB_REF:11}

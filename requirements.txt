@@ -1,0 +1,6 @@
+alembic==1.6.2
+psycopg2==2.8.6
+pydantic==1.8.2
+pylint==2.8.2
+SQLAlchemy==1.4.15
+pyTelegramBotAPI==3.7.9
