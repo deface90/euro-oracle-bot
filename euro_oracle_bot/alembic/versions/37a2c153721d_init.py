@@ -34,7 +34,7 @@ def upgrade():
                     sa.Column('chat_stage', sa.Integer(), nullable=True),
                     sa.Column('chat_stage_payload', sa.String(), nullable=True),
                     sa.Column('username', sa.String(), nullable=True),
-                    sa.Column('fulll_name', sa.String(), nullable=True),
+                    sa.Column('full_name', sa.String(), nullable=True),
                     sa.Column('created', sa.DateTime(), nullable=True),
                     sa.PrimaryKeyConstraint('id')
                     )

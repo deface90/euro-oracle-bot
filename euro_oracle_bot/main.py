@@ -4,7 +4,7 @@ from settings import Settings
 from settings import settings as bot_settings
 
 from db import Db
-# from services.api import ApiService
+from services.api import ApiService
 from services.storage import StorageService
 from services.bot import BotService
 
@@ -12,8 +12,8 @@ from services.bot import BotService
 def run(settings: Settings, logger: logging.Logger) -> None:
     db_service = Db(settings.postgres_dsn, logger)
     storage = StorageService(db_service, logger)
-    # api_service = ApiService(storage, settings.data_api_token, logger)
-    # api_service.update()
+    api_service = ApiService(storage, settings.data_api_token, logger)
+    api_service.update()
     BotService(storage, bot_settings.bot_token, logger)
 
 
