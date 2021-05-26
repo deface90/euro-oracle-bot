@@ -38,7 +38,7 @@ def upgrade():
                     sa.Column('created', sa.DateTime(), nullable=True),
                     sa.PrimaryKeyConstraint('id')
                     )
-    op.create_index(op.f('ix_user_chat_id'), 'user', ['chat_id'], unique=False)
+    op.create_index(op.f('ix_user_api_id'), 'user', ['api_id'], unique=False)
     op.create_table('match',
                     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
                     sa.Column('api_id', sa.Integer(), nullable=False),
@@ -90,7 +90,7 @@ def downgrade():
     op.drop_index(op.f('ix_match_team_away_id'), table_name='match')
     op.drop_index(op.f('ix_match_group'), table_name='match')
     op.drop_table('match')
-    op.drop_index(op.f('ix_user_chat_id'), table_name='user')
+    op.drop_index(op.f('ix_user_api_id'), table_name='user')
     op.drop_table('user')
     op.drop_table('team')
     # ### end Alembic commands ###
