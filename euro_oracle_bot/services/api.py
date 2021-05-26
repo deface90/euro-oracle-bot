@@ -7,6 +7,7 @@ from logging import Logger
 from models import Team, Match
 from models import get_group_by_api_stage_id, get_stage_by_api_stage_id, \
     get_match_status_by_api_value
+from models import MATCH_STATUS_FINISHED
 from .storage import StorageService
 
 
@@ -42,12 +43,37 @@ class ApiService:
                                      fixture["team_home_90min_goals"]
             match.away_goals_total = fixture["team_away_ET_goals"] + \
                                      fixture["team_away_90min_goals"]
+            if match.status == MATCH_STATUS_FINISHED:
+                self.process_match_result(match)
             self.storage.create_or_update_match(match)
 
         threading.Timer(3600, self.update).start()
 
-    def process_match(self, match: Match):
-        pass
+    def process_match_result(self, match: Match):
+        predictions = self.storage.get_match_predictions(match.id)
+        match_result = match.get_result()
+        for pred in predictions:
+            pred_result = pred.get_result()
+            diff = abs(match.home_goals_90 - match.away_goals_90)
+            if diff >= 3:
+                if match.home_goals_90 == pred.home_goals and \
+                        match.away_goals_90 == pred.away_goals:
+                    pred.points = 5
+                elif match_result == pred_result and \
+                        diff == abs(pred.home_goals - pred.away_goals):
+                    pred.points = 4
+            else:
+                if match.home_goals_90 == pred.home_goals and \
+                        match.away_goals_90 == pred.away_goals:
+                    pred.points = 3
+                elif match_result == pred_result:
+                    if diff == abs(pred.home_goals - pred.away_goals):
+                        pred.points = 2
+                    else:
+                        pred.points = 1
+
+            if pred.points > 0:
+                self.storage.create_or_update_prediction(pred)
 
     def process_team(self, fixture: dict, prefix: str) -> int:
         team = self.storage.get_team_by_api_id(fixture["id" + prefix.title()])

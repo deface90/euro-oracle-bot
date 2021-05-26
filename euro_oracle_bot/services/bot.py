@@ -35,10 +35,14 @@ class BotService:
                                                               commands=["matchesgroup"]))
         self.bot.add_message_handler(self._build_handler_dict(self.matches_stage_select,
                                                               commands=["matchesstage"]))
-        self.bot.add_message_handler(self._build_handler_dict(self.create_predict_match_select,
+        self.bot.add_message_handler(self._build_handler_dict(self.create_predict_next_match,
                                                               commands=["predict"]))
+        self.bot.add_message_handler(self._build_handler_dict(self.create_predict_match_select,
+                                                              commands=["predictmatch"]))
         self.bot.add_message_handler(self._build_handler_dict(self.get_user_predictions,
                                                               commands=["me"]))
+        self.bot.add_message_handler(self._build_handler_dict(self.get_leaders,
+                                                              commands=["leaders"]))
         self.bot.add_message_handler(self._build_handler_dict(self.start_message,
                                                               commands=["start"]))
         self.bot.add_message_handler(self._build_handler_dict(self.help_message,
@@ -48,7 +52,11 @@ class BotService:
         self.bot.polling()
 
     def user_middleware(self, _, update: Update):
-        user = self.storage.get_user_by_api_id(update.message.from_user.id)
+        try:
+            user = self.storage.get_user_by_api_id(update.message.from_user.id)
+        except AttributeError:
+            return
+
         if user is None:
             user = User()
             user.api_id = update.message.from_user.id
@@ -144,6 +152,15 @@ class BotService:
 
         self._send_response(message.chat.id, msg, message.log)
 
+    def create_predict_next_match(self, message):
+        match = self.storage.get_next_match_prediction(message.user.id)
+        if match is None:
+            self.bot.send_message(message.chat.id, "Следующий матч для прогнозирования не найден")
+            return
+
+        message.text = match.id
+        self.create_predict_enter_score(message)
+
     def create_predict_match_select(self, message):
         match_id = extract_arg(message.text)
         if len(match_id) == 0:
@@ -155,6 +172,13 @@ class BotService:
         self.create_predict_enter_score(message)
 
     def create_predict_enter_score(self, message):
+        try:
+            if not message.text.isdigit():
+                self._send_response(message.chat.id, "Алло, надо число набрать", message.log)
+                return
+        except AttributeError as _:
+            pass
+
         match = self.storage.get_match(message.text)
         if match is None:
             self._send_response(message.chat.id, "Матч не найден", message.log)
@@ -195,6 +219,13 @@ class BotService:
             prediction = Prediction()
             prediction.user_id = user.id
             prediction.match_id = match.id
+            prediction.points = 0
+
+        if prediction.match.datetime <= datetime.utcnow():
+            self._send_response(message.chat.id, "Прогнозы на данный матч больше не принимаются",
+                                message.log)
+            return
+
         prediction.home_goals = scores[1]
         prediction.away_goals = scores[2]
         self.storage.create_or_update_prediction(prediction)
@@ -206,8 +237,21 @@ class BotService:
     def get_user_predictions(self, message):
         predictions = self.storage.get_user_predictions(message.user.id)
         msg = "*Ваши прогнозы на матчи UEFA EURO 2020*\n\n"
+        total_points = 0
         for prediction in predictions:
+            total_points += prediction.points
             msg += f"{prediction}\n"
+
+        msg += f"\n*ВСЕГО ОЧКОВ: _{total_points}_*"
+        self._send_response(message.chat.id, msg, message.log)
+
+    def get_leaders(self, message):
+        leaders, points = self.storage.get_user_leaders()
+        msg = "*Лидеры прогнозов на матчи UEFA EURO 2020*\n\n"
+        i = 1
+        for leader, point in leaders, points:
+            msg += f"{i}. _{leader}_: *{point}*\n"
+            i += 1
 
         self._send_response(message.chat.id, msg, message.log)
 
@@ -226,9 +270,18 @@ class BotService:
 /matchestoday - матчи сегодняшнего игрового дня
 /matchesgroup - список матчей группы
 /matchesstage - список матчей стадии турнира
-/predict - создание или редактирование прогноза 
-/me - ваши прогнозы 
-        """, message.log)
+/predict - прогнозировать следующий матч
+/predictmatch - создание или редактирование прогноза на любой матч
+/me - ваши результаты и прогнозы
+/leaders - текущая таблица лидеров (ТОП-30)
+
+Подсчет очков осуществляется по следующим правилам:
+- за угаданный точный счет матча при крупной победе одной из команд (с разницей в 3 и более мяча) - 5 очков
+- за угаданную разницу и победителя матча крупной победе одной из команд - 4 очка
+- за угаданный точный счет матча - 3 очка
+- за угаданную разницу и победителя матча (или ничейного исхода) - 2 очка
+- за угаданного победителя матча - 1 очко
+""", message.log)
 
     def unknown_message(self, message):
         self._send_response(message.chat.id, """
@@ -236,11 +289,13 @@ class BotService:
         """, message.log)
 
     def _send_response(self, chat_id: int, msg: str, log: UserLog):
-        message = self.bot.send_message(chat_id, msg)
+        try:
+            message = self.bot.send_message(chat_id, msg)
+        except apihelper.ApiException:
+            return None
         log.response = msg[0:255]
         self.storage.create_or_update_userlog(log)
         return message
-
 
     @staticmethod
     def _build_handler_dict(handler, **filters):

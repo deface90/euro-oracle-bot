@@ -2,7 +2,7 @@ from logging import Logger
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import joinedload
-from sqlalchemy import asc
+from sqlalchemy import asc, desc, func
 
 from models import User, UserLog, Match, Team, Prediction, MatchFilter
 from db import Db
@@ -37,6 +37,15 @@ class StorageService:
             sess.add(user)
 
         return user.id
+
+    def get_user_leaders(self, limit: int = 30) -> list[User, int]:
+        with self.db_service.session_scope() as sess:
+            rows = sess.query(
+                User,
+                func.sum(Prediction.points).label("points")
+            ).join(Prediction).group_by(User.id).order_by(desc("points")).limit(limit)
+
+        return rows
 
     def create_or_update_userlog(self, log: UserLog):
         with self.db_service.session_scope() as sess:
@@ -121,10 +130,20 @@ class StorageService:
 
         return match.id
 
+    def get_next_match_prediction(self, user_id: int):
+        with self.db_service.session_scope() as sess:
+            subquery = sess.query(Prediction).filter(Prediction.user_id == user_id)
+            subquery = subquery.with_entities(Prediction.match_id)
+
+            query = sess.query(Match).order_by(asc(Match.datetime))
+            query = query.filter(Match.id.not_in(subquery))
+            return query.first()
+
     def find_prediction(self, user_id: int, match_id: int) -> Prediction:
         with self.db_service.session_scope() as sess:
             query = sess.query(Prediction)
-            query = query.filter(Prediction.match_id == match_id and Prediction.user_id == user_id)
+            query = query.filter(Prediction.match_id == match_id)
+            query = query.filter(Prediction.user_id == user_id)
             prediction = query.one_or_none()
 
         return prediction
@@ -137,6 +156,14 @@ class StorageService:
                 joinedload(Prediction.match).joinedload(Match.team_home),
                 joinedload(Prediction.match).joinedload(Match.team_away),
             ).all()
+
+        return predictions
+
+    def get_match_predictions(self, match_id: int) -> list[Prediction]:
+        with self.db_service.session_scope() as sess:
+            query = sess.query(Prediction).join(Match)
+            query = query.filter(Prediction.match_id == match_id)
+            predictions = query.all()
 
         return predictions
 

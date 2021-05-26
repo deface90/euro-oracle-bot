@@ -22,6 +22,10 @@ MATCH_STATUS_NOT_STARTED = 10
 MATCH_STATUS_IN_PROGRESS = 20
 MATCH_STATUS_FINISHED = 30
 
+MATCH_RESULT_HOME_WIN = 10
+MATCH_RESULT_AWAY_WIN = 20
+MATCH_RESUST_DRAW = 0
+
 USER_STAGE_SIMPLE = 0
 USER_STAGE_ENTER_SCORE = 10
 
@@ -36,6 +40,12 @@ class User(Base):
     chat_stage = Column("chat_stage", Integer, nullable=True)
     chat_stage_payload = Column("chat_stage_payload", String, nullable=True)
     created = Column("created", DateTime, nullable=True)
+
+    def __str__(self) -> str:
+        if self.full_name != "":
+            return f"{self.full_name} ({self.username})"
+
+        return self.username
 
 
 # pylint: disable=too-few-public-methods
@@ -94,7 +104,7 @@ class Match(Base):
     def __str__(self):
         match_str = f"*ID {self.id}*. {self.datetime.strftime('%d.%m.%Y %H:%M')} "
         if self.stage < STAGE_18:
-            match_str += "_Группа {self.group}_"
+            match_str += f"_Группа {self.group}_"
         elif self.stage == STAGE_18:
             match_str += "_1/8 финала_"
         elif self.stage == STAGE_14:
@@ -106,12 +116,15 @@ class Match(Base):
 
         if self.status == MATCH_STATUS_NOT_STARTED:
             match_str += f" : {self.team_home.title} - {self.team_away.title}" \
-                        f" *(не начался)*"
+                         f" *(не начался)*"
         elif self.status == MATCH_STATUS_FINISHED:
             match_str += f" : *{self.id}*: {self.team_home.title}  *{self.home_goals_total}*" \
-                        f" - *{self.away_goals_total}*  {self.team_away.title}"
+                         f" - *{self.away_goals_total}*  {self.team_away.title}"
 
         return match_str
+
+    def get_result(self) -> int:
+        return get_match_result(self.home_goals_90, self.away_goals_90)
 
 
 # pylint: disable=too-few-public-methods
@@ -130,10 +143,16 @@ class Prediction(Base):
 
     def __str__(self):
         match = self.match
-        pred_str = f"{match.team_home.title} {self.home_goals} - {self.away_goals} " \
-                   f"{match.team_away.title}"
+        pred_str = str(match) + "\n"
+
+        pred_str += f"*Ваш прогноз: _{self.home_goals} - {self.away_goals}_*"
+        if match.status == MATCH_STATUS_FINISHED:
+            pred_str += f" (очков: *{self.points}*"
 
         return pred_str
+
+    def get_result(self) -> int:
+        return get_match_result(self.home_goals, self.away_goals)
 
 
 class MatchFilter(BaseModel):
@@ -183,3 +202,12 @@ def get_match_status_by_api_value(status: str) -> int:
         "in progress": MATCH_STATUS_NOT_STARTED,
         "finished": MATCH_STATUS_FINISHED,
     }.get(status, MATCH_STATUS_NOT_STARTED)
+
+
+def get_match_result(home_goals: int, away_goals: int) -> int:
+    if home_goals > away_goals:
+        return MATCH_RESULT_HOME_WIN
+    if home_goals < away_goals:
+        return MATCH_RESULT_AWAY_WIN
+
+    return MATCH_RESUST_DRAW
