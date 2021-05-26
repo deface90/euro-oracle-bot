@@ -1,0 +1,49 @@
+version: "3.8"
+
+networks:
+  euro_bot:
+
+services:
+  bot:
+    image: deface90/euro-orcale-bot:main
+    hostname: bot
+    container_name: bot
+    networks:
+      - euro_bot
+    restart: always
+    depends_on:
+      - postgres
+    env_file:
+      - ./.env
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+
+  postgres:
+    image: postgres:13.1
+    hostname: postgres
+    container_name: postgres_bot
+    ports:
+      - "127.0.0.1:5433:5432"
+    networks:
+      - euro_bot
+    env_file:
+      - ./.env
+    volumes:
+      - "postgres_primary:/data/db"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DBNAME:-bot}
+      PGDATA: /data/db
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+
+volumes:
+    postgres_primary:
+      driver: local
+      driver_opts:
+        type: 'none'
+        o: 'bind'
+        device: '/data/db'

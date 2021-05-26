@@ -1,8 +1,9 @@
-import pytz
 import os
 
 from datetime import datetime
 from typing import Optional
+
+import pytz
 
 from sqlalchemy import Column, String, DateTime, Integer, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
@@ -105,8 +106,8 @@ class Match(Base):
     created = Column("created", DateTime, nullable=True)
 
     def __str__(self):
-        tz = pytz.timezone(os.getenv("TZ", "Asia/Yekaterinburg"))
-        match_dt = self.datetime.replace(tzinfo=pytz.utc).astimezone(tz)
+        local_tz = pytz.timezone(os.getenv("TZ", "Asia/Yekaterinburg"))
+        match_dt = self.datetime.replace(tzinfo=pytz.utc).astimezone(local_tz)
         match_str = f"*ID {self.id}*. {match_dt.strftime('%d.%m.%Y %H:%M')} "
         if self.stage < STAGE_18:
             match_str += f"_Группа {self.group}_"
