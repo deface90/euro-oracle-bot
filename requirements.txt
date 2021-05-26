@@ -4,3 +4,4 @@ pydantic==1.8.2
 pylint==2.8.2
 SQLAlchemy==1.4.15
 pyTelegramBotAPI==3.7.9
+pytz==2021.1

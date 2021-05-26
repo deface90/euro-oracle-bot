@@ -1,3 +1,6 @@
+import pytz
+import os
+
 from datetime import datetime
 from typing import Optional
 
@@ -102,7 +105,9 @@ class Match(Base):
     created = Column("created", DateTime, nullable=True)
 
     def __str__(self):
-        match_str = f"*ID {self.id}*. {self.datetime.strftime('%d.%m.%Y %H:%M')} "
+        tz = pytz.timezone(os.getenv("TZ", "Asia/Yekaterinburg"))
+        match_dt = self.datetime.replace(tzinfo=pytz.utc).astimezone(tz)
+        match_str = f"*ID {self.id}*. {match_dt.strftime('%d.%m.%Y %H:%M')} "
         if self.stage < STAGE_18:
             match_str += f"_Группа {self.group}_"
         elif self.stage == STAGE_18:

@@ -137,6 +137,7 @@ class StorageService:
 
             query = sess.query(Match).order_by(asc(Match.datetime))
             query = query.filter(Match.id.not_in(subquery))
+            query = query.filter(Match.datetime > datetime.utcnow())
             return query.first()
 
     def find_prediction(self, user_id: int, match_id: int) -> Prediction:

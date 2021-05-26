@@ -1,3 +1,5 @@
+import os
+
 from logging import Logger
 from datetime import datetime
 
@@ -78,8 +80,9 @@ class BotService:
         update.message.log = log
 
     def all_matches(self, message):
+        tz = os.getenv("TZ", "Asia/Yekaterinburg")
         matches = self.storage.find_matches(MatchFilter())
-        msg = "*Все матчи UEFA EURO 2020*\n\n"
+        msg = f"*Все матчи UEFA EURO 2020* (указано время {tz})\n\n"
         for match in matches:
             msg += f"{match}\n"
 
