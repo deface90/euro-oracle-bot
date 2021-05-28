@@ -16,4 +16,5 @@ COPY --from=dependencies /root/.local /root/.local
 
 COPY ./euro_oracle_bot /app/src
 WORKDIR /app/src
-ENTRYPOINT exec python -u main.py
+
+CMD ["python", "-u", "main.py"]
