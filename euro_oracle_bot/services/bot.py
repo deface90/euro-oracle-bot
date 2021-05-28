@@ -249,7 +249,12 @@ class BotService:
         self._send_response(message.chat.id, msg, message.log)
 
     def get_leaders(self, message):
-        leaders, points = self.storage.get_user_leaders()
+        try:
+            leaders, points = self.storage.get_user_leaders()
+        except ValueError:
+            self._send_response(message.chat.id, "*На данный момент прогнозы отсутствуют*", message.log)
+            return
+
         msg = "*Лидеры прогнозов на матчи UEFA EURO 2020*\n\n"
         i = 1
         for leader, point in leaders, points:
