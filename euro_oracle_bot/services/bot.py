@@ -252,7 +252,9 @@ class BotService:
         try:
             leaders, points = self.storage.get_user_leaders()
         except ValueError:
-            self._send_response(message.chat.id, "*На данный момент прогнозы отсутствуют*", message.log)
+            self._send_response(message.chat.id,
+                                "*На данный момент прогнозы отсутствуют*",
+                                message.log)
             return
 
         msg = "*Лидеры прогнозов на матчи UEFA EURO 2020*\n\n"
