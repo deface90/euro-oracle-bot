@@ -126,6 +126,9 @@ class Match(Base):
         elif self.status == MATCH_STATUS_FINISHED:
             match_str += f" : *{self.id}*: {self.team_home.title}  *{self.home_goals_total}*" \
                          f" - *{self.away_goals_total}*  {self.team_away.title}"
+        elif self.status == MATCH_STATUS_IN_PROGRESS:
+            match_str += f" : *{self.id}*: {self.team_home.title}  *{self.home_goals_total}*" \
+                         f" - *{self.away_goals_total}*  {self.team_away.title} *(матч идёт)*"
 
         return match_str
 
@@ -205,8 +208,10 @@ def get_stage_by_api_stage_id(stage_id: int, round_: int) -> int:
 def get_match_status_by_api_value(status: str) -> int:
     # see https://elenasport.io/doc/football-api/allfixtures
     return {
-        "in progress": MATCH_STATUS_NOT_STARTED,
+        "not started": MATCH_STATUS_NOT_STARTED,
         "finished": MATCH_STATUS_FINISHED,
+        "in progress": MATCH_STATUS_IN_PROGRESS,
+        "half time":MATCH_STATUS_IN_PROGRESS
     }.get(status, MATCH_STATUS_NOT_STARTED)
 
 

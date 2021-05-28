@@ -43,7 +43,7 @@ class ApiService:
                                      fixture["team_home_90min_goals"]
             match.away_goals_total = fixture["team_away_ET_goals"] + \
                                      fixture["team_away_90min_goals"]
-            if match.status == MATCH_STATUS_FINISHED:
+            if match.status == MATCH_STATUS_FINISHED and not match.processed:
                 self.process_match_result(match)
             self.storage.create_or_update_match(match)
 
@@ -75,6 +75,9 @@ class ApiService:
             if pred.points > 0:
                 self.storage.create_or_update_prediction(pred)
 
+        match.processed = True
+        self.storage.create_or_update_match(match)
+
     def process_team(self, fixture: dict, prefix: str) -> int:
         team = self.storage.get_team_by_api_id(fixture["id" + prefix.title()])
         if team is not None:
@@ -87,7 +90,6 @@ class ApiService:
         return self.storage.create_or_update_team(team)
 
     def _get_all_fixtures(self) -> list:
-        self.logger.info("Get all fixtures from elenasport.io")
         auth_token = self._get_auth_token(self.api_token)
         if auth_token == "":
             self.logger.error("auth token not set")
@@ -121,12 +123,9 @@ class ApiService:
             page += 1
             time.sleep(2)
 
-        self.logger.info(f"Fetched {len(all_fixtures)} fixtures")
         return all_fixtures
 
     def _get_auth_token(self, api_token: str) -> str:
-        self.logger.info("Get auth token for elenasport.io")
-
         conn = http.client.HTTPSConnection("oauth2.elenasport.io")
         headers = {
             "Authorization": "Basic " + api_token,
@@ -152,5 +151,4 @@ class ApiService:
             self.logger.error("missing access token field in elenasport.io response: " + str(data))
             return ""
 
-        self.logger.info("elenasport.io auth success")
         return data["access_token"]
