@@ -142,7 +142,7 @@ class StorageService:
 
     def find_prediction(self, user_id: int, match_id: int) -> Prediction:
         with self.db_service.session_scope() as sess:
-            query = sess.query(Prediction)
+            query = sess.query(Prediction).join(Match)
             query = query.filter(Prediction.match_id == match_id)
             query = query.filter(Prediction.user_id == user_id)
             prediction = query.one_or_none()

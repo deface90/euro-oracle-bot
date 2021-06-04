@@ -211,7 +211,7 @@ def get_match_status_by_api_value(status: str) -> int:
         "not started": MATCH_STATUS_NOT_STARTED,
         "finished": MATCH_STATUS_FINISHED,
         "in progress": MATCH_STATUS_IN_PROGRESS,
-        "half time":MATCH_STATUS_IN_PROGRESS
+        "half time": MATCH_STATUS_IN_PROGRESS
     }.get(status, MATCH_STATUS_NOT_STARTED)
 
 
