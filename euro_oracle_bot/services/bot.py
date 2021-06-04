@@ -223,6 +223,7 @@ class BotService:
             prediction.user_id = user.id
             prediction.match_id = match.id
             prediction.points = 0
+            prediction.match = match
 
         if prediction.match.datetime <= datetime.utcnow():
             self._send_response(message.chat.id, "Прогнозы на данный матч больше не принимаются",
