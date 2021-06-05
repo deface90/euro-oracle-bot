@@ -320,6 +320,8 @@ class BotService:
 
         self.bot.reply_to(message, reply_text, reply_markup=markup)
 
+        return
+
     def _send_response(self, chat_id: int, msg: str, log: UserLog):
         try:
             message = self.bot.send_message(chat_id, msg)
