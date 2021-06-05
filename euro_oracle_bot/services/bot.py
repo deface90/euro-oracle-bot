@@ -235,8 +235,14 @@ class BotService:
         self.storage.create_or_update_prediction(prediction)
 
         msg = f"Прогноз принят\n{match.team_home.title} {scores[1]} - {scores[2]} " \
-              f"{match.team_away.title}"
-        self._send_response(message.chat.id, msg, message.log)
+              f"{match.team_away.title}\n\n"
+        msg += "Для ввода прогноза на следующий матч, введите /predict\n"
+        msg += "Для просмотра своих прогнозов, введите /me"
+
+        message.log.response = msg[0:255]
+        self.storage.create_or_update_userlog(message.log)
+
+        return self._send_buttons(message, msg)
 
     def get_user_predictions(self, message):
         predictions = self.storage.get_user_predictions(message.user.id)
@@ -247,7 +253,14 @@ class BotService:
             msg += f"{prediction}\n"
 
         msg += f"\n*ВСЕГО ОЧКОВ: {total_points}*"
-        self._send_response(message.chat.id, msg, message.log)
+
+        msg += "Для ввода прогноза на следующий матч, введите /predict\n"
+        msg += "Для просмотра своих прогнозов, введите /me\n\n"
+
+        message.log.response = msg[0:255]
+        self.storage.create_or_update_userlog(message.log)
+
+        return self._send_buttons(message, msg)
 
     def get_leaders(self, message):
         try:
@@ -277,12 +290,7 @@ class BotService:
         self._send_response(message.chat.id, """
 Доступные команды:
 
-/matches - список всех матчей турнира
-/matchestoday - матчи сегодняшнего игрового дня
-/matchesgroup - список матчей группы
-/matchesstage - список матчей стадии турнира
 /predict - прогнозировать следующий матч
-/predictmatch - создание или редактирование прогноза на любой матч
 /me - ваши результаты и прогнозы
 /leaders - текущая таблица лидеров (ТОП-30)
 /help - это сообщение
@@ -298,9 +306,19 @@ class BotService:
 """, message.log)
 
     def unknown_message(self, message):
+        if message.text.lower() == "следующий матч":
+            return self.create_predict_next_match(message)
+        if message.text.lower() == "мои прогнозы":
+            return self.get_user_predictions(message)
         self._send_response(message.chat.id, """
 Бот Вас не понял :( Для просмотра доступных комманд, начнете набирать "/" или введите "/help"
         """, message.log)
+
+    def _send_buttons(self, message, reply_text: str):
+        markup = ReplyKeyboardMarkup(one_time_keyboard=True)
+        markup.add("Следующий матч", "Мои прогнозы")
+
+        self.bot.reply_to(message, reply_text, reply_markup=markup)
 
     def _send_response(self, chat_id: int, msg: str, log: UserLog):
         try:

@@ -154,7 +154,7 @@ class Prediction(Base):
         match = self.match
         pred_str = str(match) + "\n"
 
-        pred_str += f"*Ваш прогноз: _{self.home_goals} - {self.away_goals}_*"
+        pred_str += f"*Ваш прогноз: {self.home_goals} - {self.away_goals}*"
         if match.status == MATCH_STATUS_FINISHED:
             pred_str += f" (очков: *{self.points}*"
 
