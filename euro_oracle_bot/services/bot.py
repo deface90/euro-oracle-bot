@@ -235,7 +235,10 @@ class BotService:
         self.storage.create_or_update_prediction(prediction)
 
         msg = f"Прогноз принят\n{match.team_home.title} {scores[1]} - {scores[2]} " \
-              f"{match.team_away.title}"
+              f"{match.team_away.title}\n\n"
+        msg += "Для ввода прогноза на следующий матч, введите /predict\n"
+        msg += "Для просмотра своих прогнозов, введите /me"
+
         self._send_response(message.chat.id, msg, message.log)
 
     def get_user_predictions(self, message):
@@ -277,12 +280,7 @@ class BotService:
         self._send_response(message.chat.id, """
 Доступные команды:
 
-/matches - список всех матчей турнира
-/matchestoday - матчи сегодняшнего игрового дня
-/matchesgroup - список матчей группы
-/matchesstage - список матчей стадии турнира
 /predict - прогнозировать следующий матч
-/predictmatch - создание или редактирование прогноза на любой матч
 /me - ваши результаты и прогнозы
 /leaders - текущая таблица лидеров (ТОП-30)
 /help - это сообщение
