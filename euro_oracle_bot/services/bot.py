@@ -252,7 +252,7 @@ class BotService:
             total_points += prediction.points
             msg += f"{prediction}\n"
 
-        msg += f"\n*ВСЕГО ОЧКОВ: {total_points}*"
+        msg += f"\n*ВСЕГО ОЧКОВ: {total_points}*\n\n"
 
         msg += "Для ввода прогноза на следующий матч, введите /predict\n"
         msg += "Для просмотра своих прогнозов, введите /me\n\n"
@@ -287,7 +287,10 @@ class BotService:
         """, message.log)
 
     def help_message(self, message):
+        local_tz = os.getenv("TZ", "Asia/Yekaterinburg")
         self._send_response(message.chat.id, """
+Время начала матчей указано в """ + local_tz + """
+
 Доступные команды:
 
 /predict - прогнозировать следующий матч
