@@ -158,7 +158,9 @@ class BotService:
     def create_predict_next_match(self, message):
         match = self.storage.get_next_match_prediction(message.user.id)
         if match is None:
-            self._send_response(message.chat.id, "Следующий матч для прогнозирования не найден", message.log)
+            self._send_response(message.chat.id,
+                                "Следующий матч для прогнозирования не найден",
+                                message.log)
             return
 
         message.text = match.id
@@ -265,8 +267,7 @@ class BotService:
     def get_leaders(self, message):
         try:
             leaders, points = self.storage.get_user_leaders()
-        except ValueError as e:
-            self.logger.error("Leaders query error: " + str(e))
+        except ValueError:
             self._send_response(message.chat.id,
                                 "*На данный момент прогнозы отсутствуют*",
                                 message.log)
