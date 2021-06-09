@@ -33,7 +33,8 @@ class StorageService:
 
     def create_or_update_user(self, user: User) -> int:
         with self.db_service.session_scope() as sess:
-            user.created = datetime.utcnow()
+            if user.id == 0:
+                user.created = datetime.utcnow()
             sess.add(user)
 
         return user.id
@@ -43,7 +44,7 @@ class StorageService:
             rows = sess.query(
                 User,
                 func.sum(Prediction.points).label("points")
-            ).join(Prediction).group_by(User.id).order_by(desc("points")).limit(limit)
+            ).join(Prediction).group_by(User.id).order_by(desc("points")).limit(limit).all()
 
         return rows
 
@@ -156,7 +157,7 @@ class StorageService:
             predictions = query.options(
                 joinedload(Prediction.match).joinedload(Match.team_home),
                 joinedload(Prediction.match).joinedload(Match.team_away),
-            ).all()
+            ).order_by(asc("match_id")).all()
 
         return predictions
 

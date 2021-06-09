@@ -158,7 +158,7 @@ class BotService:
     def create_predict_next_match(self, message):
         match = self.storage.get_next_match_prediction(message.user.id)
         if match is None:
-            self.bot.send_message(message.chat.id, "Следующий матч для прогнозирования не найден")
+            self._send_response(message.chat.id, "Следующий матч для прогнозирования не найден", message.log)
             return
 
         message.text = match.id
@@ -265,7 +265,8 @@ class BotService:
     def get_leaders(self, message):
         try:
             leaders, points = self.storage.get_user_leaders()
-        except ValueError:
+        except ValueError as e:
+            self.logger.error("Leaders query error: " + str(e))
             self._send_response(message.chat.id,
                                 "*На данный момент прогнозы отсутствуют*",
                                 message.log)
@@ -318,7 +319,7 @@ class BotService:
         """, message.log)
 
     def _send_buttons(self, message, reply_text: str):
-        markup = ReplyKeyboardMarkup(one_time_keyboard=True)
+        markup = ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
         markup.add("Следующий матч", "Мои прогнозы")
 
         self.bot.reply_to(message, reply_text, reply_markup=markup)
