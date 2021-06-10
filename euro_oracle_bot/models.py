@@ -48,13 +48,13 @@ class User(Base):
     notifications_on = Column("notifications_on", Boolean, nullable=True)
 
     def __str__(self) -> str:
-        if self.full_name != "":
+        if self.full_name is not None:
             full_name = self.full_name.replace("_", "\\_").replace("*", "\\*").replace("[", "\\[")
             user_str = full_name
-            if self.username != "":
+            if self.username is not None:
                 username = self.username.replace("_", "\\_").replace("*", "\\*").replace("[", "\\[")
                 user_str += f" ({username})"
-        elif self.username != "":
+        elif self.username is not None:
             user_str = self.username.replace("_", "\\_").replace("*", "\\*").replace("[", "\\[")
         else:
             user_str = f"ID{self.id}"
