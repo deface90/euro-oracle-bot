@@ -48,10 +48,15 @@ class User(Base):
     notifications_on = Column("notifications_on", Boolean, nullable=True)
 
     def __str__(self) -> str:
+        full_name = self.full_name.replace("_", "\\_").replace("*", "\\*").replace("[", "\\[")
+        username = self.username.replace("_", "\\_").replace("*", "\\*").replace("[", "\\[")
+        user_str = username
         if self.full_name != "":
-            return f"{self.full_name} ({self.username})"
+            user_str = full_name
+            if username != "":
+                user_str += f" ({username})"
 
-        return self.username
+        return user_str
 
 
 # pylint: disable=too-few-public-methods

@@ -282,7 +282,7 @@ class BotService:
         msg = "*Лидеры прогнозов на матчи UEFA EURO 2020*\n\n"
         i = 1
         for leader, points in leaders:
-            msg += f"{i}. _{leader}_: *{plural_points(points)}*\n"
+            msg += f"{i}. {leader}: *{plural_points(points)}*\n"
             i += 1
 
         self._send_response(message.chat.id, msg, message.log)
@@ -353,7 +353,8 @@ class BotService:
     def _send_response(self, chat_id: int, msg: str, log: UserLog):
         try:
             message = self.bot.send_message(chat_id, msg)
-        except apihelper.ApiException:
+        except apihelper.ApiException as exc:
+            self.logger.error(f"failed to send msg {msg} to {chat_id}: {str(exc)}")
             return None
         log.response = msg[0:255]
         self.storage.create_or_update_userlog(log)

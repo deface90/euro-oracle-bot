@@ -42,12 +42,13 @@ class StorageService:
 
     def get_user_leaders(self, limit: int = 30) -> list[User, int]:
         with self.db_service.session_scope() as sess:
-            rows = sess.query(
+            query = sess.query(
                 User,
                 func.sum(Prediction.points).label("points")
             ).join(Prediction).group_by(User.id).order_by(
-                desc(text("points")), asc(text("user_created"))
-            ).limit(limit).all()
+                desc(text("points"))
+            ).limit(limit)
+            rows = query.all()
 
         return rows
 
