@@ -68,9 +68,11 @@ class BotService:
         if user is None:
             user = User()
             user.api_id = update.message.from_user.id
-            user.username = update.message.from_user.username
-            user.full_name = update.message.from_user.full_name
-            self.storage.create_or_update_user(user)
+            user.created = datetime.utcnow()
+
+        user.username = update.message.from_user.username
+        user.full_name = update.message.from_user.full_name
+        self.storage.create_or_update_user(user)
 
         update.message.user = user
 

@@ -34,8 +34,6 @@ class StorageService:
 
     def create_or_update_user(self, user: User) -> int:
         with self.db_service.session_scope() as sess:
-            if user.id == 0:
-                user.created = datetime.utcnow()
             sess.add(user)
 
         return user.id
