@@ -2,6 +2,7 @@ import os
 
 from datetime import datetime
 from typing import Optional
+from services.utils import plural_points
 
 import pytz
 
@@ -44,6 +45,7 @@ class User(Base):
     chat_stage = Column("chat_stage", Integer, nullable=True)
     chat_stage_payload = Column("chat_stage_payload", String, nullable=True)
     created = Column("created", DateTime, nullable=True)
+    notifications_on = Column("notifications_on", Boolean, nullable=True)
 
     def __str__(self) -> str:
         if self.full_name != "":
@@ -124,13 +126,20 @@ class Match(Base):
             match_str += f" : {self.team_home.title} - {self.team_away.title}" \
                          f" *(не начался)*"
         elif self.status == MATCH_STATUS_FINISHED:
-            match_str += f" : *{self.id}*: {self.team_home.title}  *{self.home_goals_total}*" \
-                         f" - *{self.away_goals_total}*  {self.team_away.title}"
+            match_str += f" : *{self.id}*:   {self.str_score()}"
         elif self.status == MATCH_STATUS_IN_PROGRESS:
-            match_str += f" : *{self.id}*: {self.team_home.title}  *{self.home_goals_total}*" \
-                         f" - *{self.away_goals_total}*  {self.team_away.title} *(матч идёт)*"
+            match_str += f" : *{self.id}*: {self.str_score()} *(матч идёт)*"
 
         return match_str
+
+    def str_score(self) -> str:
+        score_str = f"*{self.team_home.title} {self.home_goals_total} -" \
+                    f" {self.away_goals_total} {self.team_away.title}*"
+        if self.away_goals_total != self.away_goals_90 or \
+                self.home_goals_total != self.home_goals_90:
+            score_str += f" (осн. время: {self.home_goals_90} - {self.away_goals_90})"
+
+        return score_str
 
     def get_result(self) -> int:
         return get_match_result(self.home_goals_90, self.away_goals_90)
@@ -156,7 +165,7 @@ class Prediction(Base):
 
         pred_str += f"*Ваш прогноз: {self.home_goals} - {self.away_goals}*"
         if match.status == MATCH_STATUS_FINISHED:
-            pred_str += f" (очков: *{self.points}*"
+            pred_str += f" (*{plural_points(self.points)}*)"
 
         return pred_str
 

@@ -1,4 +1,5 @@
 import os
+import threading
 
 from logging import Logger
 from datetime import datetime
@@ -9,7 +10,7 @@ from telebot import apihelper
 
 from models import User, UserLog, Prediction, MatchFilter
 from models import USER_STAGE_SIMPLE, USER_STAGE_ENTER_SCORE
-from .utils import parse_group_name, parse_stage, parse_score, extract_arg
+from .utils import parse_group_name, parse_stage, parse_score, extract_arg, plural_points
 
 from .storage import StorageService
 
@@ -49,9 +50,14 @@ class BotService:
                                                               commands=["start"]))
         self.bot.add_message_handler(self._build_handler_dict(self.help_message,
                                                               commands=["help"]))
+        self.bot.add_message_handler(self._build_handler_dict(self.notifications_enable,
+                                                              commands=["notifications_on"]))
+        self.bot.add_message_handler(self._build_handler_dict(self.notifications_disable,
+                                                              commands=["notifications_off"]))
         self.bot.add_message_handler(self._build_handler_dict(self.unknown_message))
 
-        self.bot.polling()
+        bot_thread = threading.Thread(target=self.bot.polling)
+        bot_thread.start()
 
     def user_middleware(self, _, update: Update):
         try:
@@ -266,7 +272,7 @@ class BotService:
 
     def get_leaders(self, message):
         try:
-            leaders, points = self.storage.get_user_leaders()
+            leaders = self.storage.get_user_leaders()
         except ValueError:
             self._send_response(message.chat.id,
                                 "*На данный момент прогнозы отсутствуют*",
@@ -275,11 +281,17 @@ class BotService:
 
         msg = "*Лидеры прогнозов на матчи UEFA EURO 2020*\n\n"
         i = 1
-        for leader, point in leaders, points:
-            msg += f"{i}. _{leader}_: *{point}*\n"
+        for leader, points in leaders:
+            msg += f"{i}. _{leader}_: *{plural_points(points)}*\n"
             i += 1
 
         self._send_response(message.chat.id, msg, message.log)
+
+    def notifications_enable(self, message):
+        return self._set_user_notifications(message, True)
+
+    def notifications_disable(self, message):
+        return self._set_user_notifications(message, False)
 
     def start_message(self, message):
         self._send_response(message.chat.id, """
@@ -298,6 +310,8 @@ class BotService:
 /predict - прогнозировать следующий матч
 /me - ваши результаты и прогнозы
 /leaders - текущая таблица лидеров (ТОП-30)
+/notifications_on - включить уведомления о прошедших матчах
+/notifications_off - выключить уведомления о прошедших матчах
 /help - это сообщение
 
 Подсчет очков осуществляется по следующим правилам:
@@ -309,6 +323,17 @@ class BotService:
 
 *В плей-офф результаты приниматются на результат основного времени матча!*
 """, message.log)
+
+    def _set_user_notifications(self, message, state):
+        try:
+            user = message.user
+        except AttributeError:
+            self.logger.error("Missing User object when try enable notify")
+            return
+
+        user.notifications_on = state
+        self.storage.create_or_update_user(user)
+        return self._send_buttons(message, "Настройки уведомлений сохранены")
 
     def unknown_message(self, message):
         if message.text.lower() == "следующий матч":

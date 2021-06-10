@@ -4,23 +4,31 @@ import threading
 import http.client
 from logging import Logger
 
-from models import Team, Match
+from models import Team, Match, Prediction
 from models import get_group_by_api_stage_id, get_stage_by_api_stage_id, \
     get_match_status_by_api_value
 from models import MATCH_STATUS_FINISHED
 from .storage import StorageService
+from .bot import BotService
+from .utils import plural_points
 
 
 class ApiService:
-    def __init__(self, storage: StorageService, token: str, logger: Logger):
+    def __init__(self,
+                 storage: StorageService,
+                 bot: BotService,
+                 token: str,
+                 logger: Logger):
         """
         :arg: storage - storage service
+        :arg: bot - tg bot instance
         :arg: token - elenasport.io API token
         :arg: logger - logger object
         """
         self.storage = storage
         self.logger = logger
         self.api_token = token
+        self.bot = bot
 
     def update(self):
         fixtures = self._get_all_fixtures()
@@ -32,6 +40,9 @@ class ApiService:
                 match.group = get_group_by_api_stage_id(fixture["idStage"])
                 match.stage = get_stage_by_api_stage_id(fixture["idStage"], fixture["round"])
                 match.stadium = fixture["venueName"]
+
+            if match.processed:
+                continue
 
             match.team_home_id = self.process_team(fixture, "home")
             match.team_away_id = self.process_team(fixture, "away")
@@ -72,6 +83,9 @@ class ApiService:
                     else:
                         pred.points = 1
 
+            if pred.user.notifications_on:
+                self._notify_user(pred)
+
             if pred.points > 0:
                 self.storage.create_or_update_prediction(pred)
 
@@ -88,6 +102,14 @@ class ApiService:
         team.title = fixture[prefix + "Name"]
         team.group = get_group_by_api_stage_id(fixture["idStage"])
         return self.storage.create_or_update_team(team)
+
+    def _notify_user(self, pred: Prediction):
+        match = pred.match
+        msg = "Завершился один из матчей с вашим прогнозом!\n\n" \
+              f"{match.str_score()}\n\n" \
+              f"Ваш прогноз: {pred.home_goals} - {pred.away_goals}\n" \
+              f"Вы заработали *{plural_points(pred.points)}*"
+        self.bot.bot.send_message(pred.user.api_id, msg)
 
     def _get_all_fixtures(self) -> list:
         auth_token = self._get_auth_token(self.api_token)

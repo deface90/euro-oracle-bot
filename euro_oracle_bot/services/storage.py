@@ -2,6 +2,7 @@ from logging import Logger
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql import text
 from sqlalchemy import asc, desc, func
 
 from models import User, UserLog, Match, Team, Prediction, MatchFilter
@@ -44,7 +45,9 @@ class StorageService:
             rows = sess.query(
                 User,
                 func.sum(Prediction.points).label("points")
-            ).join(Prediction).group_by(User.id).order_by(desc("points")).limit(limit).all()
+            ).join(Prediction).group_by(User.id).order_by(
+                desc(text("points")), asc(text("user_created"))
+            ).limit(limit).all()
 
         return rows
 
@@ -143,7 +146,10 @@ class StorageService:
 
     def find_prediction(self, user_id: int, match_id: int) -> Prediction:
         with self.db_service.session_scope() as sess:
-            query = sess.query(Prediction).join(Match)
+            query = sess.query(Prediction)
+            query = query.options(
+                joinedload(Prediction.match)
+            )
             query = query.filter(Prediction.match_id == match_id)
             query = query.filter(Prediction.user_id == user_id)
             prediction = query.one_or_none()
@@ -152,18 +158,23 @@ class StorageService:
 
     def get_user_predictions(self, user_id: int) -> list[Prediction]:
         with self.db_service.session_scope() as sess:
-            query = sess.query(Prediction).join(Match)
+            query = sess.query(Prediction)
             query = query.filter(Prediction.user_id == user_id)
             predictions = query.options(
                 joinedload(Prediction.match).joinedload(Match.team_home),
                 joinedload(Prediction.match).joinedload(Match.team_away),
-            ).order_by(asc("match_id")).all()
+            ).order_by(asc(text("prediction_match_id"))).all()
 
         return predictions
 
     def get_match_predictions(self, match_id: int) -> list[Prediction]:
         with self.db_service.session_scope() as sess:
-            query = sess.query(Prediction).join(Match)
+            query = sess.query(Prediction)
+            query = query.options(
+                joinedload(Prediction.match).joinedload(Match.team_home),
+                joinedload(Prediction.match).joinedload(Match.team_away),
+                joinedload(Prediction.user)
+            )
             query = query.filter(Prediction.match_id == match_id)
             predictions = query.all()
 

@@ -12,9 +12,9 @@ from services.bot import BotService
 def run(settings: Settings, logger: logging.Logger) -> None:
     db_service = Db(settings.postgres_dsn, logger)
     storage = StorageService(db_service, logger)
-    api_service = ApiService(storage, settings.data_api_token, logger)
+    bot = BotService(storage, bot_settings.bot_token, logger)
+    api_service = ApiService(storage, bot, settings.data_api_token, logger)
     api_service.update()
-    BotService(storage, bot_settings.bot_token, logger)
 
 
 if __name__ == '__main__':

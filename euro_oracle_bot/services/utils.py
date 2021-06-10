@@ -39,3 +39,16 @@ def parse_score(msg: str) -> tuple[bool, int, int]:
         return False, 0, 0
 
     return True, numbers[0], numbers[1]
+
+
+def plural_points(points):
+    point_plurals = ['очко', 'очка', 'очков']
+
+    if points % 10 == 1 and points % 100 != 11:
+        idx = 0
+    elif 2 <= points % 10 <= 4 and (points % 100 < 10 or points % 100 >= 20):
+        idx = 1
+    else:
+        idx = 2
+
+    return str(points) + ' ' + point_plurals[idx]
