@@ -46,7 +46,7 @@ class StorageService:
                 User,
                 func.sum(Prediction.points).label("points")
             ).join(Prediction).group_by(User.id).order_by(
-                desc(text("points"))
+                desc(text("points")), asc(text("user_created"))
             ).limit(limit)
             rows = query.all()
 
