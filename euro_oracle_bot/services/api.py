@@ -70,9 +70,11 @@ class ApiService:
                 if match.home_goals_90 == pred.home_goals and \
                         match.away_goals_90 == pred.away_goals:
                     pred.points = 5
-                elif match_result == pred_result and \
-                        diff == abs(pred.home_goals - pred.away_goals):
-                    pred.points = 4
+                elif match_result == pred_result:
+                    if diff == abs(pred.home_goals - pred.away_goals):
+                        pred.points = 4
+                    else:
+                        pred.points = 1
             else:
                 if match.home_goals_90 == pred.home_goals and \
                         match.away_goals_90 == pred.away_goals:

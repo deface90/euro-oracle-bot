@@ -56,7 +56,7 @@ class BotService:
                                                               commands=["notifications_off"]))
         self.bot.add_message_handler(self._build_handler_dict(self.unknown_message))
 
-        bot_thread = threading.Thread(target=self.bot.polling)
+        bot_thread = threading.Thread(target=self.bot.infinity_polling)
         bot_thread.start()
 
     def user_middleware(self, _, update: Update):
