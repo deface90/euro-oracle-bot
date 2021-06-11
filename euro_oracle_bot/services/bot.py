@@ -350,7 +350,11 @@ class BotService:
         markup = ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
         markup.add("Следующий матч", "Мои прогнозы")
 
-        self.bot.reply_to(message, reply_text, reply_markup=markup)
+        try:
+            self.bot.reply_to(message, reply_text, reply_markup=markup)
+        except apihelper.ApiException as exc:
+            self.logger.error(f"failed to send buttons: {str(exc)}")
+            return None
 
     def _send_response(self, chat_id: int, msg: str, log: UserLog):
         try:

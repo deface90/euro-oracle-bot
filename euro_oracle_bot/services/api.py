@@ -4,6 +4,8 @@ import threading
 import http.client
 from logging import Logger
 
+from telebot.apihelper import ApiTelegramException
+
 from models import Team, Match, Prediction
 from models import get_group_by_api_stage_id, get_stage_by_api_stage_id, \
     get_match_status_by_api_value
@@ -110,8 +112,13 @@ class ApiService:
         msg = "Завершился один из матчей с вашим прогнозом!\n\n" \
               f"{match.str_score()}\n\n" \
               f"Ваш прогноз: {pred.home_goals} - {pred.away_goals}\n" \
-              f"Вы заработали *{plural_points(pred.points)}*"
-        self.bot.bot.send_message(pred.user.api_id, msg)
+              f"Вы заработали *{plural_points(pred.points)}*\n\n" \
+              "Для отключения уведомлений о прошедших матчах, введите /notifications\\_off"
+
+        try:
+            self.bot.bot.send_message(pred.user.api_id, msg)
+        except ApiTelegramException:
+            return
 
     def _get_all_fixtures(self) -> list:
         auth_token = self._get_auth_token(self.api_token)
