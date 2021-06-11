@@ -134,7 +134,7 @@ class Match(Base):
             match_str += f" : {self.team_home.title} - {self.team_away.title}" \
                          f" *(не начался)*"
         elif self.status == MATCH_STATUS_FINISHED:
-            match_str += f" : *{self.id}*:   {self.str_score()}"
+            match_str += f" : *{self.id}*: {self.str_score()}"
         elif self.status == MATCH_STATUS_IN_PROGRESS:
             match_str += f" : *{self.id}*: {self.str_score()} *(матч идёт)*"
 

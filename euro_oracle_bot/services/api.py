@@ -56,9 +56,9 @@ class ApiService:
                                      fixture["team_home_90min_goals"]
             match.away_goals_total = fixture["team_away_ET_goals"] + \
                                      fixture["team_away_90min_goals"]
+            self.storage.create_or_update_match(match)
             if match.status == MATCH_STATUS_FINISHED and not match.processed:
                 self.process_match_result(match)
-            self.storage.create_or_update_match(match)
 
         threading.Timer(3600, self.update).start()
 
