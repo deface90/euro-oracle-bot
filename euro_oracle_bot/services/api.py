@@ -113,7 +113,7 @@ class ApiService:
               f"{match.str_score()}\n\n" \
               f"Ваш прогноз: {pred.home_goals} - {pred.away_goals}\n" \
               f"Вы заработали *{plural_points(pred.points)}*\n\n" \
-              "Для отключения уведомлений о прошедших матчах, введите /notifications\\_off"
+              "Для отключения уведомлений о прошедших матчах, введите /notificationsoff"
 
         try:
             self.bot.bot.send_message(pred.user.api_id, msg)

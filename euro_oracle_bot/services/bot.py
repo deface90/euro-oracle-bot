@@ -197,15 +197,15 @@ class BotService:
             self._send_response(message.chat.id, "Матч не найден", message.log)
             return
 
-        user = message.user
-        user.chat_stage = USER_STAGE_ENTER_SCORE
-        user.chat_stage_payload = match.id
-        self.storage.create_or_update_user(user)
-
         if match.datetime <= datetime.utcnow():
             self._send_response(message.chat.id, "Прогнозы на данный матч больше не принимаются",
                                 message.log)
             return
+
+        user = message.user
+        user.chat_stage = USER_STAGE_ENTER_SCORE
+        user.chat_stage_payload = match.id
+        self.storage.create_or_update_user(user)
 
         msg_text = f"Укажите счет матча\n{str(match)}\n\n" \
                    f"Поддерживаются различные варианты ('2 2', '3:3', '2 - 1' и т.д.)"
