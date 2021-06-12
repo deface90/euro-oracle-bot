@@ -32,4 +32,4 @@ Possible ENV vars:
 | DATA_API_TOKEN | API token of [elenasports.io](https://elenasport.io/) to fetch matches and results (available free plan) | Yes |
 | BOT_TOKEN | Telegram Bot token | Yes |
 | POSTGRES_DSN | Postgres DSN | Yes |
-| TZ | Timezone for user output | No, `Asia/Yekaterinburg` is default |
+| TZ | Timezone for user output | No, `Europe/Moscow` is default |
