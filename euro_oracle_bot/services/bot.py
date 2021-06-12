@@ -51,9 +51,9 @@ class BotService:
         self.bot.add_message_handler(self._build_handler_dict(self.help_message,
                                                               commands=["help"]))
         self.bot.add_message_handler(self._build_handler_dict(self.notifications_enable,
-                                                              commands=["notifications_on"]))
+                                                              commands=["notificationson"]))
         self.bot.add_message_handler(self._build_handler_dict(self.notifications_disable,
-                                                              commands=["notifications_off"]))
+                                                              commands=["notificationsoff"]))
         self.bot.add_message_handler(self._build_handler_dict(self.unknown_message))
 
         bot_thread = threading.Thread(target=self.bot.infinity_polling)
@@ -312,8 +312,8 @@ class BotService:
 /predict - прогнозировать следующий матч
 /me - ваши результаты и прогнозы
 /leaders - текущая таблица лидеров (ТОП-30)
-/notifications_on - включить уведомления о прошедших матчах
-/notifications_off - выключить уведомления о прошедших матчах
+/notificationson - включить уведомления о прошедших матчах
+/notificationsoff - выключить уведомления о прошедших матчах
 /help - это сообщение
 
 Подсчет очков осуществляется по следующим правилам:
