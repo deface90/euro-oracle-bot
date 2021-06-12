@@ -88,7 +88,7 @@ class BotService:
         update.message.log = log
 
     def all_matches(self, message):
-        local_tz = os.getenv("TZ", "Asia/Yekaterinburg")
+        local_tz = os.getenv("TZ", "Europe/Moscow")
         matches = self.storage.find_matches(MatchFilter())
         msg = f"*Все матчи UEFA EURO 2020* (указано время {local_tz})\n\n"
         for match in matches:
@@ -187,7 +187,7 @@ class BotService:
     def create_predict_enter_score(self, message):
         try:
             if not message.text.isdigit():
-                self._send_response(message.chat.id, "Алло, надо число набрать", message.log)
+                self._send_response(message.chat.id, "Матч не найден", message.log)
                 return
         except AttributeError as _:
             pass
@@ -201,6 +201,11 @@ class BotService:
         user.chat_stage = USER_STAGE_ENTER_SCORE
         user.chat_stage_payload = match.id
         self.storage.create_or_update_user(user)
+
+        if match.datetime <= datetime.utcnow():
+            self._send_response(message.chat.id, "Прогнозы на данный матч больше не принимаются",
+                                message.log)
+            return
 
         msg_text = f"Укажите счет матча\n{str(match)}\n\n" \
                    f"Поддерживаются различные варианты ('2 2', '3:3', '2 - 1' и т.д.)"
@@ -303,7 +308,7 @@ class BotService:
         """, message.log)
 
     def help_message(self, message):
-        local_tz = os.getenv("TZ", "Asia/Yekaterinburg")
+        local_tz = os.getenv("TZ", "Europe/Moscow")
         self._send_response(message.chat.id, """
 Время начала матчей указано в """ + local_tz + """
 
@@ -312,6 +317,7 @@ class BotService:
 /predict - прогнозировать следующий матч
 /me - ваши результаты и прогнозы
 /leaders - текущая таблица лидеров (ТОП-30)
+/predictmatch - сделать прогноз на произвольный матч или отредактировать существующий
 /notificationson - включить уведомления о прошедших матчах
 /notificationsoff - выключить уведомления о прошедших матчах
 /help - это сообщение

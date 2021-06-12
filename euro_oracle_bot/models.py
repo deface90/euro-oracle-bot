@@ -116,7 +116,7 @@ class Match(Base):
     created = Column("created", DateTime, nullable=True)
 
     def __str__(self):
-        local_tz = pytz.timezone(os.getenv("TZ", "Asia/Yekaterinburg"))
+        local_tz = pytz.timezone(os.getenv("TZ", "Europe/Moscow"))
         match_dt = self.datetime.replace(tzinfo=pytz.utc).astimezone(local_tz)
         match_str = f"*ID {self.id}*. {match_dt.strftime('%d.%m.%Y %H:%M')} "
         if self.stage < STAGE_18:
