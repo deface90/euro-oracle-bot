@@ -353,7 +353,7 @@ class BotService:
         """, message.log)
 
     def _send_buttons(self, message, reply_text: str):
-        markup = ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
+        markup = ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
         markup.add("Следующий матч", "Мои прогнозы")
 
         try:
