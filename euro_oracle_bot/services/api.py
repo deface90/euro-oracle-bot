@@ -131,7 +131,7 @@ class ApiService:
         headers = {
             'Authorization': "Bearer " + auth_token,
         }
-        page = 1
+        page = 2
         while True:
             conn.request("GET", f"/v2/seasons/797/fixtures?page={page}", headers=headers)
             try:
