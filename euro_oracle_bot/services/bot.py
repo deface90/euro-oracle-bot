@@ -164,14 +164,17 @@ class BotService:
         self._send_response(message.chat.id, msg, message.log)
 
     def create_predict_next_match(self, message):
-        # self._send_response(message.chat.id,
-        #                     "*Пожалуйста, дождитесь объявления о начале приема прогнозов на "
-        #                     "матчи плей-офф*",
-        #                     message.log)
         match = self.storage.get_next_match_prediction(message.user.id)
         if match is None:
             self._send_response(message.chat.id,
                                 "Следующий матч для прогнозирования не найден",
+                                message.log)
+            return
+
+        if int(match.id) > 36:
+            self._send_response(message.chat.id,
+                                "*Пожалуйста, дождитесь объявления о начале приема прогнозов на "
+                                "матчи плей-офф*",
                                 message.log)
             return
 
