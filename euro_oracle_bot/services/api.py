@@ -113,7 +113,8 @@ class ApiService:
               f"{match.str_score()}\n\n" \
               f"Ваш прогноз: {pred.home_goals} - {pred.away_goals}\n" \
               f"Вы заработали *{plural_points(pred.points)}*\n\n" \
-              "Для отключения уведомлений о прошедших матчах, введите /notificationsoff"
+              "Для дальнейшией игры с Ботом, пожалуйста, дождитесь " \
+              "объявления о начале приема прогнозов на матчи плей-офф"
 
         try:
             self.bot.bot.send_message(pred.user.api_id, msg)
@@ -131,7 +132,7 @@ class ApiService:
         headers = {
             'Authorization': "Bearer " + auth_token,
         }
-        page = 1
+        page = 2
         while True:
             conn.request("GET", f"/v2/seasons/797/fixtures?page={page}", headers=headers)
             try:
