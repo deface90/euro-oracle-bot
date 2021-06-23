@@ -1,5 +1,4 @@
 import json
-import time
 import threading
 import http.client
 from logging import Logger
@@ -113,8 +112,8 @@ class ApiService:
               f"{match.str_score()}\n\n" \
               f"Ваш прогноз: {pred.home_goals} - {pred.away_goals}\n" \
               f"Вы заработали *{plural_points(pred.points)}*\n\n" \
-              "Для дальнейшией игры с Ботом, пожалуйста, дождитесь " \
-              "объявления о начале приема прогнозов на матчи плей-офф"
+              "*Для дальнейшией игры с Ботом, пожалуйста, дождитесь " \
+              "объявления о начале приема прогнозов на матчи плей-офф*"
 
         try:
             self.bot.bot.send_message(pred.user.api_id, msg)
@@ -133,27 +132,24 @@ class ApiService:
             'Authorization': "Bearer " + auth_token,
         }
         page = 2
-        while True:
-            conn.request("GET", f"/v2/seasons/797/fixtures?page={page}", headers=headers)
-            try:
-                response = conn.getresponse()
-            except http.client.ResponseNotReady as exception:
-                self.logger.error("failed to send get request to elenasport.io: " + str(exception))
-                break
+        conn.request("GET", f"/v2/seasons/797/fixtures?page={page}", headers=headers)
+        try:
+            response = conn.getresponse()
+        except http.client.ResponseNotReady as exception:
+            self.logger.error("failed to send get request to elenasport.io: " + str(exception))
+            return []
 
-            raw_data = response.read()
-            data = json.loads(raw_data)
+        raw_data = response.read()
+        data = json.loads(raw_data)
 
-            if "data" not in data:
-                self.logger.error("Missing data field in elenasport.io response: " + str(raw_data))
-                break
+        if "data" not in data:
+            self.logger.error("Missing data field in elenasport.io response: " + str(raw_data))
+            return []
 
-            all_fixtures += data["data"]
+        all_fixtures += data["data"]
 
-            if not data["pagination"]["hasNextPage"]:
-                break
-            page += 1
-            time.sleep(2)
+        if not data["pagination"]["hasNextPage"]:
+            return []
 
         return all_fixtures
 
