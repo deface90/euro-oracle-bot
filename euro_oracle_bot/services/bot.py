@@ -165,7 +165,7 @@ class BotService:
 
     def create_predict_next_match(self, message):
         # self._send_response(message.chat.id,
-        #                     "*Пжалуйста, дождитесь объявления о начале приема прогнозов на "
+        #                     "*Пожалуйста, дождитесь объявления о начале приема прогнозов на "
         #                     "матчи плей-офф*",
         #                     message.log)
         match = self.storage.get_next_match_prediction(message.user.id)
