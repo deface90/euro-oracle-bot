@@ -55,6 +55,8 @@ class ApiService:
                                      fixture["team_home_90min_goals"]
             match.away_goals_total = fixture["team_away_ET_goals"] + \
                                      fixture["team_away_90min_goals"]
+            match.home_goals_pen = fixture["team_home_PEN_goals"]
+            match.away_goals_pen = fixture["team_away_PEN_goals"]
             self.storage.create_or_update_match(match)
             if match.status == MATCH_STATUS_FINISHED and not match.processed:
                 self.process_match_result(match)
@@ -112,11 +114,9 @@ class ApiService:
               f"{match.str_score()}\n\n" \
               f"Ваш прогноз: {pred.home_goals} - {pred.away_goals}\n" \
               f"Вы заработали *{plural_points(pred.points)}*\n\n" \
-              "*Для дальнейшией игры с Ботом, пожалуйста, дождитесь " \
-              "объявления о начале приема прогнозов на матчи плей-офф*"
 
         try:
-            self.bot.bot.send_message(pred.user.api_id, msg)
+            self.bot.send_buttons_by_id(pred.user.api_id, msg)
         except ApiTelegramException:
             return
 

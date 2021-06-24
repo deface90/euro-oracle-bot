@@ -171,10 +171,10 @@ class BotService:
                                 message.log)
             return
 
-        if int(match.id) > 36:
+        if int(match.id) > 44:
             self._send_response(message.chat.id,
-                                "*Пожалуйста, дождитесь объявления о начале приема прогнозов на "
-                                "матчи плей-офф*",
+                                "*Вы сделали прогнозы за все матчи этой стадии. "
+                                "Бот обязательно напомнит вам о начале следующей!*",
                                 message.log)
             return
 
@@ -215,7 +215,7 @@ class BotService:
         self.storage.create_or_update_user(user)
 
         msg_text = f"Укажите счет матча\n{str(match)}\n\n" \
-                   f"Поддерживаются различные варианты ('2 2', '3:3', '2 - 1' и т.д.)"
+                   f"*Прогнозы принимаются на результат основного времени*"
         msg = self._send_response(message.chat.id, msg_text, message.log)
         self.bot.register_next_step_handler(msg, self.create_predict)
 
@@ -299,7 +299,7 @@ class BotService:
             msg += f"{i}. {leader}: *{plural_points(points)}*\n"
             i += 1
 
-        self._send_response(message.chat.id, msg, message.log)
+        self._send_buttons(message, msg)
 
     def notifications_enable(self, message):
         return self._set_user_notifications(message, True)
@@ -324,7 +324,6 @@ class BotService:
 /predict - прогнозировать следующий матч
 /me - ваши результаты и прогнозы
 /leaders - текущая таблица лидеров (ТОП-30)
-/predictmatch - сделать прогноз на произвольный матч или отредактировать существующий
 /notificationson - включить уведомления о прошедших матчах
 /notificationsoff - выключить уведомления о прошедших матчах
 /help - это сообщение
@@ -358,6 +357,16 @@ class BotService:
         self._send_response(message.chat.id, """
 Бот Вас не понял :( Для просмотра доступных комманд, начнете набирать "/" или введите "/help"
         """, message.log)
+
+    def send_buttons_by_id(self, chat_id, reply_text: str):
+        markup = ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+        markup.add("Следующий матч", "Мои прогнозы")
+
+        try:
+            self.bot.send_message(chat_id, reply_text, reply_markup=markup)
+        except apihelper.ApiException as exc:
+            self.logger.error(f"failed to send buttons: {str(exc)}")
+            return None
 
     def _send_buttons(self, message, reply_text: str):
         markup = ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)

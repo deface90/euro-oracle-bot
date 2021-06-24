@@ -110,6 +110,8 @@ class Match(Base):
     away_goals_90 = Column("away_goals_90", Integer, nullable=True)
     home_goals_total = Column("home_goals_total", Integer, nullable=True)
     away_goals_total = Column("away_goals_total", Integer, nullable=True)
+    home_goals_pen = Column("home_goals_pen", Integer, nullable=True)
+    away_goals_pen = Column("away_goals_pen", Integer, nullable=True)
     status = Column("status", Integer, nullable=True)
     processed = Column("processed", Boolean, nullable=True)
     updated = Column("updated", DateTime, nullable=True)
@@ -143,7 +145,14 @@ class Match(Base):
     def str_score(self) -> str:
         score_str = f"*{self.team_home.title} {self.home_goals_total} -" \
                     f" {self.away_goals_total} {self.team_away.title}*"
-        if self.away_goals_total != self.away_goals_90 or \
+
+        # Check for penalties
+        if self.home_goals_pen is not None and self.away_goals_pen is not None and \
+                self.home_goals_pen + self.away_goals_pen != 0:
+            score_str += f", пен. {self.home_goals_pen} - {self.away_goals_pen} " \
+                         f"(осн. время: {self.home_goals_90} - {self.away_goals_90})"
+        # Check for extra time
+        elif self.away_goals_total != self.away_goals_90 or \
                 self.home_goals_total != self.home_goals_90:
             score_str += f" (осн. время: {self.home_goals_90} - {self.away_goals_90})"
 
