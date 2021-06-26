@@ -282,7 +282,7 @@ class BotService:
         message.log.response = msg[0:255]
         self.storage.create_or_update_userlog(message.log)
 
-        return self._send_buttons(message, msg)
+        return self._send_buttons_split(message, msg)
 
     def get_leaders(self, message):
         try:
@@ -374,6 +374,31 @@ class BotService:
 
         try:
             self.bot.reply_to(message, reply_text, reply_markup=markup)
+        except apihelper.ApiException as exc:
+            self.logger.error(f"failed to send buttons: {str(exc)}")
+            return None
+
+    def _send_buttons_split(self, message, reply_text: str):
+        markup = ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+        markup.add("Следующий матч", "Мои прогнозы")
+
+        try:
+            if len(reply_text) > 4000:
+                start_idx = 0
+                while True:
+                    tmp_text = reply_text[start_idx:start_idx + 4000]
+                    reply_idx = tmp_text.rfind("\n")
+                    if reply_idx == 0:
+                        if tmp_text != "":
+                            self.bot.send_message(message.chat.id, tmp_text, reply_markup=markup)
+                        break
+
+                    reply = tmp_text[:reply_idx]
+                    if reply != "":
+                        self.bot.send_message(message.chat.id, reply, reply_markup=markup)
+                    start_idx += reply_idx
+            else:
+                self.bot.reply_to(message, reply_text, reply_markup=markup)
         except apihelper.ApiException as exc:
             self.logger.error(f"failed to send buttons: {str(exc)}")
             return None
