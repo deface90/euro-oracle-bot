@@ -171,7 +171,7 @@ class BotService:
                                 message.log)
             return
 
-        if int(match.id) > 44:
+        if int(match.id) > 48:
             self._send_response(message.chat.id,
                                 "*Вы сделали прогнозы за все матчи этой стадии. "
                                 "Бот обязательно напомнит вам о начале следующей!*",
