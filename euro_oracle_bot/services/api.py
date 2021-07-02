@@ -131,8 +131,7 @@ class ApiService:
         headers = {
             'Authorization': "Bearer " + auth_token,
         }
-        page = 2
-        conn.request("GET", f"/v2/seasons/797/fixtures?page={page}", headers=headers)
+        conn.request("GET", "/v2/seasons/797/fixtures?from=2021-07-01", headers=headers)
         try:
             response = conn.getresponse()
         except http.client.ResponseNotReady as exception:
@@ -147,9 +146,6 @@ class ApiService:
             return []
 
         all_fixtures += data["data"]
-
-        if not data["pagination"]["hasNextPage"]:
-            return []
 
         return all_fixtures
 

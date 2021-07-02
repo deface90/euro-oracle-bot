@@ -171,10 +171,11 @@ class BotService:
                                 message.log)
             return
 
-        if int(match.id) > 48:
+        if int(match.id) > 50:
+            # pylint: disable=line-too-long
             self._send_response(message.chat.id,
-                                "*Вы сделали прогнозы за все матчи этой стадии. "
-                                "Бот обязательно напомнит вам о начале следующей!*",
+                                "*Вы сделали прогнозы за все полуфинальные матчи. "
+                                "Бот обязательно напомнит вам о начале приема прогнозов на финал!*",
                                 message.log)
             return
 
