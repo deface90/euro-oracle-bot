@@ -131,7 +131,7 @@ class ApiService:
         headers = {
             'Authorization': "Bearer " + auth_token,
         }
-        conn.request("GET", "/v2/seasons/797/fixtures?from=2021-07-01", headers=headers)
+        conn.request("GET", "/v2/seasons/797/fixtures?from=2021-07-06", headers=headers)
         try:
             response = conn.getresponse()
         except http.client.ResponseNotReady as exception:

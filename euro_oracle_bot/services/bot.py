@@ -167,15 +167,7 @@ class BotService:
         match = self.storage.get_next_match_prediction(message.user.id)
         if match is None:
             self._send_response(message.chat.id,
-                                "Следующий матч для прогнозирования не найден",
-                                message.log)
-            return
-
-        if int(match.id) > 50:
-            # pylint: disable=line-too-long
-            self._send_response(message.chat.id,
-                                "*Вы сделали прогнозы на все полуфинальные матчи. "
-                                "Бот обязательно напомнит вам о начале приема прогнозов на финал!*",
+                                "Вы спрогнозировали все возможные матчи EURO 2020!",
                                 message.log)
             return
 
