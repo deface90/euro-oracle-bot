@@ -343,13 +343,7 @@ class BotService:
         return self._send_buttons(message, "Настройки уведомлений сохранены")
 
     def unknown_message(self, message):
-        if message.text.lower() == "следующий матч":
-            return self.create_predict_next_match(message)
-        if message.text.lower() == "мои прогнозы":
-            return self.get_user_predictions(message)
-        self._send_response(message.chat.id, """
-Бот Вас не понял :( Для просмотра доступных комманд, начнете набирать "/" или введите "/help"
-        """, message.log)
+        self.storage.create_or_update_userlog(message.log)
 
     def send_buttons_by_id(self, chat_id, reply_text: str):
         markup = ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
