@@ -11,7 +11,7 @@ from services.bot import BotService
 def run(settings: Settings, logger: logging.Logger) -> None:
     db_service = Db(settings.postgres_dsn, logger)
     storage = StorageService(db_service, logger)
-    bot = BotService(storage, bot_settings.bot_token, logger)
+    BotService(storage, bot_settings.bot_token, logger)
 
 
 if __name__ == '__main__':
